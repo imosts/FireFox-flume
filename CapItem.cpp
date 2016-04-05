@@ -61,7 +61,28 @@ CapItem::WrapObject(JSContext* aCx)
   return CapItemBinding::Wrap(aCx, this);
 }
 
-bool CapItem::Equals(mozilla::dom::CapItem& other){
+already_AddRefed<CapItem>
+CapItem::Constructor(const GlobalObject& global, const nsAString& principal, unsigned capType,
+                  ErrorResult& aRv)
+{
+  nsRefPtr<CapItem> capLabel = new CapItem(principal, capLabel, aRv);
+  if (aRv.Failed())
+    return nullptr;
+  return capLabel.forget();
+}
+
+already_AddRefed<CapItem>
+CapItem::Constructor(const GlobalObject& global, nsIPrincipal* principal,
+                  ErrorResult& aRv)
+{
+  nsRefPtr<CapItem> capLabel = new CapItem(principal, capLabel, aRv);
+  if (aRv.Failed())
+    return nullptr;
+  return capLabel.forget();
+}
+
+
+bool CapItem::Equals(CapItem& other){
 	
   nsCOMPtr<nsIPrincipal> p1 = other->GetPrincipal();
   char *origin1, *origin2;
@@ -91,8 +112,6 @@ bool CapItem::Equals(mozilla::dom::CapItem& other){
 
 
 };
-  
-//???Constructor函数
 
 ///???Clone函数
 

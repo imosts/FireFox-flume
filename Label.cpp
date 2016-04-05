@@ -12,7 +12,6 @@
 #include "nsCOMPtr.h"
 #include "nsScriptSecurityManager.h"
 #include "nsServiceManagerUtils.h"
-//???
 #include "mozilla/dom/BindingUtils.h"
 
 namespace mozilla {
@@ -108,7 +107,7 @@ Label::Equals(mozilla::dom::Label& other)
 }
 
 bool
-Label::Subsumes(mozilla::dom::Label& other)
+Label::Subsumes(const mozilla::dom::Label& other)
 {
   // Break out early if the other points to this
   if (&other == this)
@@ -131,7 +130,7 @@ Label::Subsumes(mozilla::dom::Label& other)
   return true;
 }
 
-
+/*
 already_AddRefed<Label>
 Label::And(const nsAString& principal, ErrorResult& aRv)
 {
@@ -158,6 +157,7 @@ Label::And(Label& other, ErrorResult& aRv)
   nsRefPtr<Label> _this = this;
   return _this.forget();
 }
+*/
 
 
 void 

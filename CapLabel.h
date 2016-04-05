@@ -61,8 +61,7 @@ public:
 											uint32_t capType,
                                             ErrorResult& aRv);
   static already_AddRefed<CapLabel> Constructor(const GlobalObject& global,
-                                            nsIPrincipal* principal, 
-											mozilla::dom::CapItem capType,
+											mozilla::dom::CapItem capItem,
                                             ErrorResult& aRv);
 
 

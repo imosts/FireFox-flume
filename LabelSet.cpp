@@ -43,9 +43,9 @@ LabelSet::LabelSet(mozilla::dom::Label* s, mozilla::dom::Label* i, mozilla::dom:
 
 LabelSet::LabelSet(mozilla::dom::LabelSet* labelSet)
 {
-  this.sLabel = labelSet->sLabel;
-  this.iLabel = labelSet->iLabel;
-  this.cLabel = labelSet->cLabel;
+  this.sLabel = labelSet->GetSecLabel();
+  this.iLabel = labelSet->GetIntLabel();
+  this.cLabel = labelSet->GetCapLabel();
 }
 
 LabelSet::~LabelSet()
@@ -64,30 +64,27 @@ LabelSet::GetParentObject() const
   return nullptr; //TODO: return something sensible here
 }
 
-/*
-already_AddRefed<Label>
-Label::Constructor(const GlobalObject& global, const nsAString& principal, 
+
+already_AddRefed<LabelSet>
+LabelSet::Constructor(const GlobalObject& global, mozilla::dom::Label& s, mozilla::dom::Label& i, mozilla::dom::CapLabel& c,
                   ErrorResult& aRv)
 {
-  nsRefPtr<Label> label = new Label(principal, aRv);
+  nsRefPtr<LabelSet> labelset = new LabelSet(s, i, c);
   if (aRv.Failed())
     return nullptr;
-  return label.forget();
+  return labelset.forget();
 }
 
-already_AddRefed<Label>
-Label::Constructor(const GlobalObject& global, const Sequence<nsString >& principals, 
+already_AddRefed<LabelSet>
+LabelSet::Constructor(const GlobalObject& global, mozilla::dom::LabelSet& labelSet, 
                   ErrorResult& aRv)
 {
-  nsRefPtr<Label> label = new Label();
-  for (unsigned i = 0; i < principals.Length(); ++i) {
-    label->_And(principals[i],aRv);
-    if (aRv.Failed())
-      return nullptr;
-  }
-  return label.forget();
+  nsRefPtr<LabelSet> labelset = new LabelSet(labelSet);
+  if (aRv.Failed())
+    return nullptr;
+  return labelset.forget();
 }
-*/
+
 
 bool
 LabelSet::Equals(mozilla::dom::LabelSet& other)

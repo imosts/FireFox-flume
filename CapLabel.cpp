@@ -38,7 +38,7 @@ CapLabel::CapLabel(mozilla::dom::CapItem &cap, ErrorResult& aRv){
   _And(cap,aRv);
 };
 
-CapLabel::CapLabel(const nsAString& principal,, unsigned[] capType ErrorResult& aRv)
+CapLabel::CapLabel(const nsAString& principal,, unsigned capType ErrorResult& aRv)
 {
   _And(principal, capType, aRv);
 }
@@ -65,31 +65,53 @@ CapLabel::GetParentObject() const
 }
 
 
-/*
+
 already_AddRefed<CapLabel>
-CapLabel::Constructor(const GlobalObject& global, const nsAString& principal, 
+CapLabel::Constructor(const GlobalObject& global, const nsAString& principal, unsigned capType,
                   ErrorResult& aRv)
 {
-  nsRefPtr<CapLabel> caplabel = new CapLabel(principal, aRv);
+  nsRefPtr<CapLabel> caplabel = new CapLabel(principal, capType, aRv);
   if (aRv.Failed())
     return nullptr;
   return caplabel.forget();
 }
 
 already_AddRefed<CapLabel>
-CapLabel::Constructor(const GlobalObject& global, const Sequence<nsString >& principals, 
+CapLabel::Constructor(const GlobalObject& global, const Sequence<nsString >& principals, Sequence<unsigned>& capType,
                   ErrorResult& aRv)
 {
   nsRefPtr<CapLabel> caplabel = new CapLabel();
+  if (principals.Length() != capType.Length()) {
+	  aRv.Throw(NS_ERROR_FAILURE);
+      return nullptr;
+}
   for (unsigned i = 0; i < principals.Length(); ++i) {
-    caplabel->_And(principals[i],aRv);
+    caplabel->_And(principals[i], capType[i], aRv);
     if (aRv.Failed())
       return nullptr;
   }
   return caplabel.forget();
 }
 
-*/
+already_AddRefed<CapLabel> 
+CapLabel::Constructor(const GlobalObject& global, nsIPrincipal* principal, uint32_t capType,
+                  ErrorResult& aRv)
+{
+	nsRefPtr<CapLabel> caplabel = new CapLabel(principal, capType, aRv);
+    if (aRv.Failed())
+      return nullptr;
+    return caplabel.forget();
+}
+
+already_AddRefed<CapLabel> 
+CapLabel::Constructor(const GlobalObject& global, mozilla::dom::CapItem capItem,
+                  ErrorResult& aRv)
+{
+	nsRefPtr<CapLabel> caplabel = new CapLabel(capItem, aRv);
+    if (aRv.Failed())
+      return nullptr;
+    return caplabel.forget();
+}
 
 bool
 CapLabel::Equals(mozilla::dom::CapLabel& other)

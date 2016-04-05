@@ -44,7 +44,7 @@ public:
 
   virtual JSObject* WrapObject(JSContext* aCx) MOZ_OVERRIDE;
   
-  bool Equals(mozilla::dom::CapItem& other);
+  bool Equals(CapItem& other);
 
   
   static already_AddRefed<CapLabel> Constructor(const GlobalObject& global,

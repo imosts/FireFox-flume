@@ -12,7 +12,7 @@ interface CapItem;
 [Constructor(DOMString principal, unsigned capType),
  Constructor(sequence<DOMString> principals), Sequence<uint32_t>& capType,
  Constructor(Principal principal, unsigned capType),
- Constructor(CapItem capType)]
+ Constructor(CapItem capItem)]
 interface CapLabel {
 
   boolean equals(CapLabel other);
