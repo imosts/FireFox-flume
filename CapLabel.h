@@ -15,6 +15,7 @@
 #include "nsIDocument.h"
 #include "nsTArray.h"
 #include "nsContentUtils.h"
+#include "mozilla/dom/TypedArray.h"
 #include "CapItem.h"
 
 struct JSContext;
@@ -23,7 +24,7 @@ namespace mozilla {
 namespace dom {
 
 
-typedef nsTArray< nsCOMPtr<mozilla::dom::CapItem> > CapArray;
+typedef nsTArray< nsRefPtr<mozilla::dom::CapItem> > CapArray;
 
 class CapLabel MOZ_FINAL : public nsISupports
                      , public nsWrapperCache
@@ -37,7 +38,7 @@ protected:
 
 public:
   CapLabel();
-  CapLabel(mozilla::dom::CapItem &cap, ErrorResult& aRv);
+  CapLabel(mozilla::dom::CapItem &cap);
   CapLabel(const nsAString& principal, unsigned capType, ErrorResult& aRv);
   CapLabel(nsIPrincipal* principal ,unsigned capType);
 
@@ -54,27 +55,32 @@ public:
                                             ErrorResult& aRv);
   static already_AddRefed<CapLabel> Constructor(const GlobalObject& global,
                                             const Sequence<nsString>& principals, 
-											Sequence<uint32_t>& capType,
+											Uint32Array& capType,
                                             ErrorResult& aRv);
+											
+/*JS接口中使用nsIPrincipal来构造对象的方法暂且不用		
   static already_AddRefed<CapLabel> Constructor(const GlobalObject& global,
                                             nsIPrincipal* principal, 
 											uint32_t capType,
                                             ErrorResult& aRv);
+*/
+
+/*JS接口中使用nsIPrincipal来构造对象的方法暂且不用	,可以使用Clone代替来构造，若要使用，本函数还需修改，！！！引用指针！！！
   static already_AddRefed<CapLabel> Constructor(const GlobalObject& global,
 											mozilla::dom::CapItem capItem,
                                             ErrorResult& aRv);
+*/
 
+  bool Equals(mozilla::dom::CapLabel& other);
 
-  //already_AddRefed<CapLabel> Clone(ErrorResult &aRv) const;
-  
-  bool Equals(mozilla::dom::Label& other);
+  already_AddRefed<CapLabel> Clone(ErrorResult &aRv) const;
 
   void Stringify(nsString& retval);
 
 
 public: // C++ only:
   //暂时不写在接口里
-  already_AddRefed<CapLabel> And(const nsAString& principal, unsigned[] capType, ErrorResult& aRv);
+  already_AddRefed<CapLabel> And(const nsAString& principal, unsigned capType, ErrorResult& aRv);
   already_AddRefed<CapLabel> And(nsIPrincipal* principal, unsigned capType, ErrorResult& aRv);
   already_AddRefed<CapLabel> And(mozilla::dom::CapLabel& other, ErrorResult& aRv);
 
@@ -99,12 +105,10 @@ private:
                    bool clone = false);
 
 public: // XXX TODO make private, unsafe
-  PrincipalArray* GetDirectCaps()
+  CapArray* GetDirectCaps()
   {
     return &mCaps;
   }
-
-//  friend class Label;
 
 private:
   CapArray mCaps;
@@ -114,17 +118,18 @@ private:
 class nsICapPrincipalComparator {
 
 public:
-  int Compare(const nsCOMPtr<mozilla::dom::CapItem> &p1,
-              const nsCOMPtr<mozilla::dom::CapItem> &p2) const;
+  int Compare(const nsRefPtr<mozilla::dom::CapItem> &p1,
+              const nsRefPtr<mozilla::dom::CapItem> &p2) const;
 
-  bool Equals(const nsCOMPtr<mozilla::dom::CapItem> &p1,
-              const nsCOMPtr<mozilla::dom::CapItem> &p2) const
+  bool Equals(const nsRefPtr<mozilla::dom::CapItem> &p1,
+              const nsRefPtr<mozilla::dom::CapItem> &p2) const
   {
     return Compare(p1,p2) == 0;
   }
 
-  bool LessThan(const nsCOMPtr<mozilla::dom::CapItem> &p1,
-                const nsCOMPtr<mozilla::dom::CapItem> &p2) const
+
+  bool LessThan(const nsRefPtr<mozilla::dom::CapItem> &p1,
+                const nsRefPtr<mozilla::dom::CapItem> &p2) const
   {
     return Compare(p1,p2) < 0;
   }

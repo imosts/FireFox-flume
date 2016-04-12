@@ -15,6 +15,10 @@
 #include "nsIDocument.h"
 #include "nsTArray.h"
 #include "nsContentUtils.h"
+#include "CapItem.h"
+#include "CapLabel.h"
+#include "Label.h"
+
 
 struct JSContext;
 
@@ -33,8 +37,8 @@ protected:
 
 public:
   LabelSet();
-  LabelSet(mozilla::dom::Label* s, mozilla::dom::Label* i, mozilla::dom::CapLabel* c);
-  LabelSet(mozilla::dom::LabelSet labelSet);
+  LabelSet(mozilla::dom::Label& s, mozilla::dom::Label& i, mozilla::dom::CapLabel& c, ErrorResult &aRv);
+  LabelSet(mozilla::dom::LabelSet& labelSet, ErrorResult &aRv);
 
 
   LabelSet* GetParentObject() const; //FIXME
@@ -57,12 +61,9 @@ public:
   bool IsFlumeSafe(mozilla::dom::LabelSet& labelSet);
   
   
-  static
-  already_AddRefed<Label> GetSecLabel();
-  static 
-  already_AddRefed<Label> GetIntLabel();
-  static 
-  already_AddRefed<CapLabel> GetCapLabel();
+  already_AddRefed<Label> GetSecLabel(ErrorResult& aRv);
+  already_AddRefed<Label> GetIntLabel(ErrorResult& aRv);
+  already_AddRefed<CapLabel> GetCapLabel(ErrorResult& aRv);
   
   void AddSecPrincipal(const nsAString& principal, ErrorResult& aRv);
   void AddSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv);
@@ -80,19 +81,14 @@ public:
   already_AddRefed<LabelSet> clone(ErrorResult& aRv);
    
   void Stringify(nsString& retval);
-  
-  
 
-public: // C++ only:
-
-  
-  
-
+public://c++ only!
+  void StrToPrin(const nsAString& principal, ErrorResult& aRv, nsIPrincipal* prinPtr);
 				  
 private:
-  Label sLabel;
-  Label iLabel;
-  CapLabel cLabel;
+  nsRefPtr<Label> sLabel;
+  nsRefPtr<Label> iLabel;
+  nsRefPtr<CapLabel> cLabel;
 
 };
 

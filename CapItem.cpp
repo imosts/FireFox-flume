@@ -39,8 +39,8 @@ NS_INTERFACE_MAP_END
 	  _Init(principal, capType, aRv);
   };
   
-  CapItem::CapItem(nsIPrincipal* principal ,unsigned capType){
-	   _Init(principal, capType);
+  CapItem::CapItem(nsIPrincipal* principal ,unsigned capType, ErrorResult& aRv){
+	   _Init(principal, capType, aRv);
   };
   
   /*
@@ -62,29 +62,46 @@ CapItem::WrapObject(JSContext* aCx)
 }
 
 already_AddRefed<CapItem>
-CapItem::Constructor(const GlobalObject& global, const nsAString& principal, unsigned capType,
+CapItem::Constructor(const GlobalObject& global, const nsAString& principal, uint32_t capType,
                   ErrorResult& aRv)
 {
-  nsRefPtr<CapItem> capLabel = new CapItem(principal, capLabel, aRv);
+  nsRefPtr<CapItem> capLaItem = new CapItem(principal, capType, aRv);
   if (aRv.Failed())
     return nullptr;
-  return capLabel.forget();
+  return capLaItem.forget();
 }
 
+
+/*JS接口中使用nsIPrincipal来构造对象的方法暂且不用
 already_AddRefed<CapItem>
-CapItem::Constructor(const GlobalObject& global, nsIPrincipal* principal,
+CapItem::Constructor(const GlobalObject& global, nsIPrincipal* principal, uint32_t capType,
                   ErrorResult& aRv)
 {
-  nsRefPtr<CapItem> capLabel = new CapItem(principal, capLabel, aRv);
+  nsRefPtr<CapItem> capLaItem = new CapItem(principal, capType, aRv);
   if (aRv.Failed())
     return nullptr;
-  return capLabel.forget();
+  return capLaItem.forget();
 }
+*/
+
+
+ already_AddRefed<CapItem> 
+ CapItem::Clone(ErrorResult &aRv) const{
+  nsRefPtr<CapItem> capItem = new CapItem(this->cPrincipal, this->cType, aRv);
+
+  if(!capItem) {
+    aRv = NS_ERROR_OUT_OF_MEMORY;
+    return nullptr;
+  }
+  
+  return capItem.forget();
+ }
+ 
 
 
 bool CapItem::Equals(CapItem& other){
-	
-  nsCOMPtr<nsIPrincipal> p1 = other->GetPrincipal();
+  bool res;
+  nsCOMPtr<nsIPrincipal> p1 = *(other.GetPrincipal());
   char *origin1, *origin2;
   
   nsresult rv;
@@ -93,7 +110,7 @@ bool CapItem::Equals(CapItem& other){
   NS_ASSERTION(NS_SUCCEEDED(rv), "nsIPrincipal::GetOrigin failed");
   if (NS_FAILED(rv)) return false;
 
-  rv = cPrincipal.GetOrigin(&origin2);
+  rv = cPrincipal->GetOrigin(&origin2);
   NS_ASSERTION(NS_SUCCEEDED(rv), "nsIPrincipal::GetOrigin failed");
   if (NS_FAILED(rv)) return false;
 
@@ -103,7 +120,7 @@ bool CapItem::Equals(CapItem& other){
   nsMemory::Free(origin2);
   
   if(res == 0){
-	if((other->GetType()) == (p1->GetType())){
+	if((other.GetType()) == (cType)){
 		return true;
 	}
   }
@@ -112,8 +129,6 @@ bool CapItem::Equals(CapItem& other){
 
 
 };
-
-///???Clone函数
 
   
   void CapItem::_Init(const nsAString& principal, unsigned capType, ErrorResult& aRv){
@@ -151,11 +166,12 @@ bool CapItem::Equals(CapItem& other){
     return;
   }
 
-  _Init(nPrincipal, capType);
+  _Init(nPrincipal, capType, aRv);
   
   };
-  void CapItem::_Init(nsIPrincipal* principal, unsigned capType){
+  void CapItem::_Init(nsIPrincipal* principal, unsigned capType, ErrorResult& aRv){
 	  if (capType == 0 || capType > 3) {
+    aRv.Throw(NS_ERROR_FAILURE);
 		return;
 	  }
 	  cPrincipal = principal;
@@ -164,11 +180,11 @@ bool CapItem::Equals(CapItem& other){
   };
   
   void CapItem::_Init(mozilla::dom::CapItem& other){
-	  if (other.capType == 0 || other.capType > 3) {
+	  if (other.GetType() == 0 || other.GetType() > 3) {
 		return;
 	  }
-	  this.cPrincipal = other.cPrincipal;
-	  this.cType = other.capType;
+	  this->cPrincipal = *(other.GetPrincipal());
+	  this->cType = other.GetType();
   };
 
 

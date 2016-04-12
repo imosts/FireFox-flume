@@ -8,8 +8,7 @@
 interface Principal;
 interface URI;
 
-[Constructor(DOMString principal£¬ unsigned capType),
- Constructor(Principal principals), unsigned capType]
+[Constructor(DOMString principal, unsigned long capType)]
 interface CapItem {
 
   /**
@@ -21,8 +20,9 @@ interface CapItem {
 
   /**
    * Make a new copy of this Label.
+   */
 
   [Throws]
   CapItem clone();
-  */
+
 };

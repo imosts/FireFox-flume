@@ -7,12 +7,12 @@
 
 interface Principal;
 interface URI;
-interface CapItem;
-interface Label;
-interface CapLabel;
+//interface CapItem;
+//interface Label;
+//interface CapLabel;
 
 [Constructor(Label s, Label i, CapLabel c),
- Constructor(LabelSet labelSet,)]
+ Constructor(LabelSet labelSet)]
 interface LabelSet {
 
   /**
@@ -29,19 +29,19 @@ interface LabelSet {
   
   static CapLabel getCapLabel();
   
-  [Throws] void addSecPrincipal(const DOMString? principal);
+  [Throws] void addSecPrincipal(DOMString? principal);
   
   [Throws] void addSecPrincipal(Principal principal);
   
-  [Throws] void delSecPrincipal(const DOMString? principal);
+  [Throws] void delSecPrincipal(DOMString? principal);
   
   [Throws] void delSecPrincipal(Principal principal);
   
-  [Throws] void dddIntPrincipal(const DOMString? principal);
+  [Throws] void dddIntPrincipal(DOMString? principal);
   
   [Throws] void addIntPrincipal(Principal principal);
   
-  [Throws] void delIntPrincipal(const DOMString? principal);
+  [Throws] void delIntPrincipal(DOMString? principal);
   
   [Throws] void delIntPrincipal(Principal principal);
   

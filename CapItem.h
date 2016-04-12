@@ -34,8 +34,7 @@ protected:
 public:
   CapItem();
   CapItem(const nsAString& principal, unsigned capType, ErrorResult& aRv);
-  
-  CapItem(nsIPrincipal* principal ,unsigned capType);
+  CapItem(nsIPrincipal* principal ,unsigned capType, ErrorResult& aRv);
   
   //CapItem(CapItem& other);
 
@@ -46,24 +45,24 @@ public:
   
   bool Equals(CapItem& other);
 
-  
-  static already_AddRefed<CapLabel> Constructor(const GlobalObject& global,
+  static already_AddRefed<CapItem> Constructor(const GlobalObject& global,
                                             const nsAString& principal, 
 											uint32_t capType,
                                             ErrorResult& aRv);
-											
-  static already_AddRefed<CapLabel> Constructor(const GlobalObject& global,
+
+/*JS接口中使用nsIPrincipal来构造对象的方法暂且不用				
+  static already_AddRefed<CapItem> Constructor(const GlobalObject& global,
                                             nsIPrincipal* principal, 
 											uint32_t capType,
                                             ErrorResult& aRv);
+											*/
 
-  /*
-  already_AddRefed<Label> Clone(ErrorResult &aRv) const;
-  */
+//每个类中加入Clone函数
+  already_AddRefed<CapItem> Clone(ErrorResult &aRv) const;
 
 private: // C++ only:
   void _Init(const nsAString& principal, unsigned capType, ErrorResult& aRv);
-  void _Init(nsIPrincipal* principal, unsigned capType);
+  void _Init(nsIPrincipal* principal, unsigned capType, ErrorResult& aRv);
   void _Init(mozilla::dom::CapItem& other);
 
 
@@ -74,7 +73,7 @@ public:
     return !cPrincipal;
   }
   
-  already_AddRefed<nsIPrincipal> GetPrincipal()
+  nsCOMPtr<nsIPrincipal>* GetPrincipal()
   {
     return &cPrincipal;
   }

@@ -78,7 +78,7 @@ public: // C++ only:
   void _And(mozilla::dom::Label& other);
 
   
-  void Reduce(mozilla::dom::Label &label);
+  void Reduce(nsIPrincipal &principal);
 	
   bool IsEmpty() const
   {
@@ -87,8 +87,10 @@ public: // C++ only:
 
 private:
 
+/*
   void InternalAnd(mozilla::dom::Role& role, ErrorResult* aRv = nullptr,
                    bool clone = false);
+*/
 
 public: // XXX TODO make private, unsafe
   PrincipalArray* GetDirectPrincipals()

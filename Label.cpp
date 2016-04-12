@@ -113,7 +113,7 @@ Label::Subsumes(const mozilla::dom::Label& other)
   if (&other == this)
     return true;
 
-  PrincipalArray *otherPrincipals = other.GetDirectPrincipals();
+  PrincipalArray *otherPrincipals = const_cast<mozilla::dom::Label&>(other).GetDirectPrincipals();
 
   // The other label is smaller, this label cannot imply (subsume) it.
   if (otherPrincipals->Length() < mPrincipals.Length())
@@ -189,10 +189,8 @@ Label::Stringify(nsString& retval)
 void
 Label::Reduce(nsIPrincipal &principal)
 {
-  if (principal == NULL) return;
-  
   nsIPrincipalComparator cmp;
-  while (mPrincipals.RemoveElement(principal, cmp)) ;
+  while (mPrincipals.RemoveElement(&principal, cmp)) ;
 }
 
 already_AddRefed<Label>

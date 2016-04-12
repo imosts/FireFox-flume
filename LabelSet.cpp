@@ -34,18 +34,21 @@ LabelSet::LabelSet()
 {
 }
 
-LabelSet::LabelSet(mozilla::dom::Label* s, mozilla::dom::Label* i, mozilla::dom::CapLabel* c)
+LabelSet::LabelSet(mozilla::dom::Label& s, mozilla::dom::Label& i, mozilla::dom::CapLabel& c, ErrorResult &aRv)
 {
-  sLabel = *s;
-  iLabel = *i;
-  cLabel = *c;
+  sLabel = s.Clone(aRv);
+  iLabel = i.Clone(aRv);
+  cLabel = c.Clone(aRv);
 }
 
-LabelSet::LabelSet(mozilla::dom::LabelSet* labelSet)
+LabelSet::LabelSet(mozilla::dom::LabelSet& labelSet, ErrorResult& aRv)
 {
-  this.sLabel = labelSet->GetSecLabel();
-  this.iLabel = labelSet->GetIntLabel();
-  this.cLabel = labelSet->GetCapLabel();
+  nsRefPtr<Label> temS = labelSet.GetSecLabel(aRv);
+  sLabel = temS->Clone(aRv);
+  nsRefPtr<Label> temI = labelSet.GetIntLabel(aRv);
+  iLabel = temI->Clone(aRv);
+  nsRefPtr<CapLabel> temC = labelSet.GetCapLabel(aRv);
+  cLabel = temC->Clone(aRv);
 }
 
 LabelSet::~LabelSet()
@@ -69,7 +72,7 @@ already_AddRefed<LabelSet>
 LabelSet::Constructor(const GlobalObject& global, mozilla::dom::Label& s, mozilla::dom::Label& i, mozilla::dom::CapLabel& c,
                   ErrorResult& aRv)
 {
-  nsRefPtr<LabelSet> labelset = new LabelSet(s, i, c);
+  nsRefPtr<LabelSet> labelset = new LabelSet(s, i, c, aRv);
   if (aRv.Failed())
     return nullptr;
   return labelset.forget();
@@ -92,166 +95,186 @@ LabelSet::Equals(mozilla::dom::LabelSet& other)
   // Break out early if the other and this are the same.
   if (&other == this)
     return true;
+  
+  ErrorResult aRv;
+  nsRefPtr<Label> s = other.GetSecLabel(aRv);
+  nsRefPtr<Label> i = other.GetIntLabel(aRv);
+  nsRefPtr<CapLabel> c = other.GetCapLabel(aRv);
 
-  if(this.sLabel.Equals(other.sLabel)
-	  && this.iLabel.Equals(other.iLabel)
-      && this.cLabel.Equals(other.cLabel)){
+
+  if (aRv.Failed()){
+    return false;
+  }
+
+  if (sLabel->Equals(*s)
+	   && iLabel->Equals(*i)
+       && cLabel->Equals(*c)){
 	  return true;
   }
   
   return false;
 }
 
-static
-  already_AddRefed<Label> GetSecLabel(){
+  already_AddRefed<Label> 
+LabelSet::GetSecLabel(ErrorResult& aRv){
 	  
-  nsRefPtr<Label> _this = this.sLabel;
+  nsRefPtr<Label> temLabel = sLabel->Clone(aRv);
+  if (aRv.Failed()){
+    return nullptr;
+  }
+  return temLabel.forget();
+  
+  }
+  
+  already_AddRefed<Label> 
+LabelSet::GetIntLabel(ErrorResult& aRv){
+	  
+  nsRefPtr<Label> _this = iLabel->Clone(aRv);
+  if (aRv.Failed()){
+    return nullptr;
+  }
   return _this.forget();
   
   }
   
-  static
-  already_AddRefed<Label> GetIntLabel(){
+  already_AddRefed<CapLabel> 
+LabelSet::GetCapLabel(ErrorResult& aRv){
 	  
-  nsRefPtr<Label> _this = this.iLabel;
-  return _this.forget();
-  
+  nsRefPtr<CapLabel> _this = cLabel->Clone(aRv);
+  if (aRv.Failed()){
+    return nullptr;
   }
-  
-  static
-  already_AddRefed<CapLabel> GetCapLabel(){
-	  
-  nsRefPtr<CapLabel> _this = this.cLabel;
   return _this.forget();
   
   }
   
 void 
-Label::Stringify(nsString& retval)
+LabelSet::Stringify(nsString& retval)
 {
   retval = NS_LITERAL_STRING("S-");
-  sLabel.Stringify(retval);
+  sLabel->Stringify(retval);
   retval.Append(NS_LITERAL_STRING(" I-"));
-  iLabel.Stringify(retval);
+  iLabel->Stringify(retval);
   retval.Append(NS_LITERAL_STRING(" C-"));
-  cLabel.Stringify(retval);
+  cLabel->Stringify(retval);
 }
 
+
+void LabelSet::AddSecPrincipal(const nsAString& principal, ErrorResult& aRv){
+	
+  nsCOMPtr<nsIPrincipal> nPrincipal;
+  StrToPrin(principal, aRv, nPrincipal);
+  AddSecPrincipal(nPrincipal, aRv);
+
+}
+
+void LabelSet::AddSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
+	
+  nsRefPtr<CapItem> item = new CapItem(principal, (unsigned)1, aRv);
+  nsRefPtr<CapItem> Ditem = new CapItem(principal, (unsigned)3, aRv);
+
+  
+  if (cLabel->Contains(*item) || cLabel->Contains(*Ditem)) {
+	sLabel->_And(principal);
+  }else{
+	aRv.Throw(NS_ERROR_FAILURE);
+  }
+}
+
+void LabelSet::DelSecPrincipal(const nsAString& principal, ErrorResult& aRv){
+	
+  nsCOMPtr<nsIPrincipal> nPrincipal;
+  StrToPrin(principal, aRv, nPrincipal);
+  DelSecPrincipal(nPrincipal, aRv);
+
+}
+
+void LabelSet::DelSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
+	
+  nsRefPtr<CapItem> item = new CapItem(principal, (unsigned)2, aRv);
+  nsRefPtr<CapItem> Ditem = new CapItem(principal, (unsigned)3, aRv);
+  
+  if (cLabel->Contains(*item) || cLabel->Contains(*Ditem)) {
+	sLabel->Reduce(*principal);
+  }else{
+	aRv.Throw(NS_ERROR_FAILURE);
+  }
+}
+
+void LabelSet::AddIntPrincipal(const nsAString& principal, ErrorResult& aRv){
+	
+  nsCOMPtr<nsIPrincipal> nPrincipal;
+  StrToPrin(principal, aRv, nPrincipal);
+  AddIntPrincipal(nPrincipal, aRv);
+
+}
+
+void LabelSet::AddIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
+	
+  nsRefPtr<CapItem> item = new CapItem(principal, (unsigned)1, aRv);
+  nsRefPtr<CapItem> Ditem = new CapItem(principal, (unsigned)3, aRv);
+  
+  if (cLabel->Contains(*item) || cLabel->Contains(*Ditem)) {
+	iLabel->_And(principal);
+  }else{
+	aRv.Throw(NS_ERROR_FAILURE);
+  }
+}
+
+void LabelSet::DelIntPrincipal(const nsAString& principal, ErrorResult& aRv){
+	
+  nsCOMPtr<nsIPrincipal> nPrincipal;
+  StrToPrin(principal, aRv, nPrincipal);
+  DelIntPrincipal(nPrincipal, aRv);
+
+}
+
+void LabelSet::DelIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
+	
+  nsRefPtr<CapItem> item = new CapItem(principal, (unsigned)2, aRv);
+  nsRefPtr<CapItem> Ditem = new CapItem(principal, (unsigned)3, aRv);
+  
+  if (cLabel->Contains(*item) || cLabel->Contains(*Ditem)) {
+	iLabel->Reduce(*principal);
+  }else{
+	aRv.Throw(NS_ERROR_FAILURE);
+  }
+}
+
+
+void
+StrToPrin(const nsAString& principal, ErrorResult& aRv, nsIPrincipal& prinPtr){
+  nsCOMPtr<nsIScriptSecurityManager> secMan =
+    nsContentUtils::GetSecurityManager();
+
+  if (!secMan) {
+    aRv.Throw(NS_ERROR_FAILURE);
+    return;
+  }
+
+  nsresult rv;
+
+  // Create URI
+  nsCOMPtr<nsIURI> uri;
+  rv = NS_NewURI(getter_AddRefs(uri), principal);
+  if (NS_FAILED(rv)) {
+    rv = NS_NewURI(getter_AddRefs(uri), 
+                   NS_LITERAL_STRING("moz-role:") + principal);
+    if (NS_FAILED(rv)) {
+      aRv.Throw(rv);
+      return;
+    }
+  }
+
   // Create Principal
+  nsCOMPtr<nsIPrincipal> nPrincipal;
   rv = secMan->GetNoAppCodebasePrincipal(uri, getter_AddRefs(nPrincipal));
   if (NS_FAILED(rv)) {
     aRv.Throw(rv);
     return;
   }
-}
-
-void AddSecPrincipal(const nsAString& principal, ErrorResult& aRv){
-	
-  nsCOMPtr<CapItem> item = new CapItem(principal, 1);
-  nsCOMPtr<CapItem> Ditem = new CapItem(principal, 3);
-  nsIPrincipalComparator cmp;
-  
-  if (cLabel.Contains(item) || cLabel.Contains(Ditem)) {
-	nsCOMPtr<Label> nsPrincipal = new Label(principal);
-	sLabel.And(principal, aRv);
-  }else{
-	aRv.Throw(NS_ERROR_FAILURE);
-  }
-}
-
-void AddSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
-	
-  nsCOMPtr<CapItem> item = new CapItem(principal, 1);
-  nsCOMPtr<CapItem> Ditem = new CapItem(principal, 3);
-  nsIPrincipalComparator cmp;
-  
-  if (cLabel.Contains(item) || cLabel.Contains(Ditem)) {
-	sLabel.And(principal, aRv);
-  }else{
-	aRv.Throw(NS_ERROR_FAILURE);
-  }
-}
-
-void DelSecPrincipal(const nsAString& principal, ErrorResult& aRv){
-	
-  nsCOMPtr<CapItem> item = new CapItem(principal, 2);
-  nsCOMPtr<CapItem> Ditem = new CapItem(principal, 3);
-  nsIPrincipalComparator cmp;
-  
-  if (cLabel.Contains(item) || cLabel.Contains(Ditem)) {
-	nsCOMPtr<Label> nsPrincipal = new Label(principal);
-	sLabel.Reduce(nsPrincipal);
-  }else{
-	aRv.Throw(NS_ERROR_FAILURE);
-  }
-}
-
-void DelSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
-	
-  nsCOMPtr<CapItem> item = new CapItem(principal, 2);
-  nsCOMPtr<CapItem> Ditem = new CapItem(principal, 3);
-  nsIPrincipalComparator cmp;
-  
-  if (cLabel.Contains(item) || cLabel.Contains(Ditem)) {
-	sLabel.Reduce(principal);
-  }else{
-	aRv.Throw(NS_ERROR_FAILURE);
-  }
-}
-
-void AddIntPrincipal(const nsAString& principal, ErrorResult& aRv){
-	
-  nsCOMPtr<CapItem> item = new CapItem(principal, 1);
-  nsCOMPtr<CapItem> Ditem = new CapItem(principal, 3);
-  nsIPrincipalComparator cmp;
-  
-  if (cLabel.Contains(item) || cLabel.Contains(Ditem)) {
-	nsCOMPtr<Label> nsPrincipal = new Label(principal);
-	iLabel.And(nsPrincipal, aRv);
-  }else{
-	aRv.Throw(NS_ERROR_FAILURE);
-  }
-}
-
-void AddIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
-	
-  nsCOMPtr<CapItem> item = new CapItem(principal, 1);
-  nsCOMPtr<CapItem> Ditem = new CapItem(principal, 3);
-  nsIPrincipalComparator cmp;
-  
-  if (cLabel.Contains(item) || cLabel.Contains(Ditem)) {
-	iLabel.And(principal, aRv);
-  }else{
-	aRv.Throw(NS_ERROR_FAILURE);
-  }
-}
-
-void DelSIntPrincipal(const nsAString& principal, ErrorResult& aRv){
-	
-  nsCOMPtr<CapItem> item = new CapItem(principal, 2);
-  nsCOMPtr<CapItem> Ditem = new CapItem(principal, 3);
-  nsIPrincipalComparator cmp;
-  
-  if (cLabel.Contains(item) || cLabel.Contains(Ditem)) {
-	nsCOMPtr<Label> nsPrincipal = new Label(principal);
-	iLabel.Reduce(nsPrincipal);
-  }else{
-	aRv.Throw(NS_ERROR_FAILURE);
-  }
-}
-
-void DelIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
-	
-  nsCOMPtr<CapItem> item = new CapItem(principal, 2);
-  nsCOMPtr<CapItem> Ditem = new CapItem(principal, 3);
-  nsIPrincipalComparator cmp;
-  
-  if (cLabel.Contains(item) || cLabel.Contains(Ditem)) {
-	iLabel.Reduce(principal);
-  }else{
-	aRv.Throw(NS_ERROR_FAILURE);
-  }
-}
+  prinPtr = *nPrincipal;
+};
 
 } // namespace dom
 } // namespace mozilla

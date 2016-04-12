@@ -7,12 +7,9 @@
 
 interface Principal;
 interface URI;
-interface CapItem;
 
-[Constructor(DOMString principal, unsigned capType),
- Constructor(sequence<DOMString> principals), Sequence<uint32_t>& capType,
- Constructor(Principal principal, unsigned capType),
- Constructor(CapItem capItem)]
+[Constructor(DOMString principal, unsigned long capType),
+ Constructor(sequence<DOMString> principals, Uint32Array? capType)]
 interface CapLabel {
 
   boolean equals(CapLabel other);
@@ -22,9 +19,11 @@ interface CapLabel {
   
   /**
    * Make a new copy of this Label.
+  */
+
   [Throws]
   CapLabel clone();
-  */
+
 
   stringifier;
 };

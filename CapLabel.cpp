@@ -14,6 +14,7 @@
 #include "nsServiceManagerUtils.h"
 //???
 #include "mozilla/dom/BindingUtils.h"
+#include "mozilla/dom/TypedArray.h"
 
 namespace mozilla {
 namespace dom {
@@ -34,11 +35,11 @@ CapLabel::CapLabel()
 {
 }
 
-CapLabel::CapLabel(mozilla::dom::CapItem &cap, ErrorResult& aRv){
-  _And(cap,aRv);
+CapLabel::CapLabel(mozilla::dom::CapItem &cap){
+  _And(cap);
 };
 
-CapLabel::CapLabel(const nsAString& principal,, unsigned capType ErrorResult& aRv)
+CapLabel::CapLabel(const nsAString& principal, unsigned capType, ErrorResult& aRv)
 {
   _And(principal, capType, aRv);
 }
@@ -67,7 +68,7 @@ CapLabel::GetParentObject() const
 
 
 already_AddRefed<CapLabel>
-CapLabel::Constructor(const GlobalObject& global, const nsAString& principal, unsigned capType,
+CapLabel::Constructor(const GlobalObject& global, const nsAString& principal, unsigned int capType,
                   ErrorResult& aRv)
 {
   nsRefPtr<CapLabel> caplabel = new CapLabel(principal, capType, aRv);
@@ -77,7 +78,8 @@ CapLabel::Constructor(const GlobalObject& global, const nsAString& principal, un
 }
 
 already_AddRefed<CapLabel>
-CapLabel::Constructor(const GlobalObject& global, const Sequence<nsString >& principals, Sequence<unsigned>& capType,
+CapLabel::Constructor(const GlobalObject& global, const Sequence<nsString >& principals, 
+Uint32Array& capType,
                   ErrorResult& aRv)
 {
   nsRefPtr<CapLabel> caplabel = new CapLabel();
@@ -85,14 +87,16 @@ CapLabel::Constructor(const GlobalObject& global, const Sequence<nsString >& pri
 	  aRv.Throw(NS_ERROR_FAILURE);
       return nullptr;
 }
+  unsigned* type = capType.Data();
   for (unsigned i = 0; i < principals.Length(); ++i) {
-    caplabel->_And(principals[i], capType[i], aRv);
+    caplabel->_And(principals[i], type[i], aRv);
     if (aRv.Failed())
       return nullptr;
   }
   return caplabel.forget();
 }
 
+/*JS接口中使用nsIPrincipal来构造对象的方法暂且不用	
 already_AddRefed<CapLabel> 
 CapLabel::Constructor(const GlobalObject& global, nsIPrincipal* principal, uint32_t capType,
                   ErrorResult& aRv)
@@ -102,7 +106,10 @@ CapLabel::Constructor(const GlobalObject& global, nsIPrincipal* principal, uint3
       return nullptr;
     return caplabel.forget();
 }
+*/
 
+
+/*JS接口中使用nsIPrincipal来构造对象的方法暂且不用	,可以使用Clone代替来构造，若要使用，本函数还需修改，！！！引用指针！！！
 already_AddRefed<CapLabel> 
 CapLabel::Constructor(const GlobalObject& global, mozilla::dom::CapItem capItem,
                   ErrorResult& aRv)
@@ -112,6 +119,27 @@ CapLabel::Constructor(const GlobalObject& global, mozilla::dom::CapItem capItem,
       return nullptr;
     return caplabel.forget();
 }
+*/
+
+ already_AddRefed<CapLabel> 
+ CapLabel::Clone(ErrorResult &aRv) const{
+  nsRefPtr<CapLabel> capLabel = new CapLabel();
+
+  if(!capLabel) {
+    aRv = NS_ERROR_OUT_OF_MEMORY;
+    return nullptr;
+  }
+
+  CapArray *newCapl = capLabel->GetDirectCaps();
+  for (unsigned i = 0; i < mCaps.Length(); i++) {
+    nsRefPtr<CapItem> item = mCaps[i]->Clone(aRv);
+    if (aRv.Failed())
+      return nullptr;
+    newCapl->InsertElementAt(i, item);
+  }
+
+  return capLabel.forget();
+ }
 
 bool
 CapLabel::Equals(mozilla::dom::CapLabel& other)
@@ -120,16 +148,17 @@ CapLabel::Equals(mozilla::dom::CapLabel& other)
   if (&other == this)
     return true;
 
-  CapArray *otherCaps = other->GetDirectCaps();
+  CapArray *otherCaps = other.GetDirectCaps();
 
   // The other label is of a different size, can't be equal.
   if (otherCaps->Length() != mCaps.Length())
     return false;
 
+  nsICapPrincipalComparator cmp;
   for (unsigned i=0; i< mCaps.Length(); ++i) {
     /* This role contains a principal that the other role does not, 
      * hence it cannot be equal to it. */
-    if(!mCaps[i].Equals((*otherCaps)[i])))
+    if(cmp.Equals(mCaps[i],(*otherCaps)[i]))
       return false;
   }
 
@@ -175,9 +204,12 @@ CapLabel::Stringify(nsString& retval)
 	retval.Append(NS_LITERAL_STRING("Label(")); 
   }
 
+  nsCOMPtr<nsIPrincipal> temPrin = *(mCaps[0]->GetPrincipal());
+
   for (unsigned i=0; i < mCaps.Length(); ++i) {
     char *origin = NULL;
-    nsresult rv = mCaps[i]->GetOrigin(&origin);
+    temPrin = *(mCaps[i]->GetPrincipal());
+    nsresult rv = temPrin->GetOrigin(&origin);
     if (NS_FAILED(rv) || !origin) {
       retval.Append(NS_LITERAL_STRING("x-bogus:<unknown-principal>"));
     } else {
@@ -204,20 +236,23 @@ CapLabel::Stringify(nsString& retval)
 void
 CapLabel::Reduce(mozilla::dom::CapItem& cap)
 {
-  if (cap == NULL) return;
   
-  nsIPrincipalComparator cmp;
-  while (mCaps.RemoveElement(cap, cmp)) ;
+  nsICapPrincipalComparator cmp;
+  while (mCaps.RemoveElement(&cap, cmp));
+  
 }
 
  bool 
  CapLabel::Contains(mozilla::dom::CapItem& cap){
-  if (!mCaps.Contains(cap, cmp)){
+  nsRefPtr<CapItem> temCap = new CapItem(cap);
+  nsICapPrincipalComparator cmp;
+  if (!mCaps.Contains(temCap, cmp)){
 	return true; 
   }
   return false;
  }
 
+/*
 already_AddRefed<CapLabel>
 CapLabel::Clone(ErrorResult &aRv) const
 {
@@ -234,6 +269,8 @@ CapLabel::Clone(ErrorResult &aRv) const
   }
   return caplabel.forget();
 }
+
+*/
 
 
 //
@@ -279,17 +316,19 @@ CapLabel::_And(const nsAString& principal, unsigned capType, ErrorResult& aRv)
 void
 CapLabel::_And(nsIPrincipal* principal, unsigned capType)
 {
-  nsCOMPtr<CapItem> item = new CapItem(principal, capType);
-  _And(item);
+  ErrorResult aRv;
+  nsRefPtr<CapItem> item = new CapItem(principal, capType, aRv);
+  _And(*item);
 }
 
 void
 CapLabel::_And(mozilla::dom::CapItem& cap)
 {
   // Add principal if it's not there
-  nsIPrincipalComparator cmp;
-  if (!mCaps.Contains(cap, cmp))
-    mCaps.InsertElementSorted(cap, cmp);
+  nsRefPtr<CapItem> tempCap = new CapItem(cap);
+  nsICapPrincipalComparator cmp;
+  if (!mCaps.Contains(tempCap, cmp))
+    mCaps.InsertElementSorted(tempCap, cmp);
 }
 
 
@@ -298,19 +337,19 @@ CapLabel::_And(mozilla::dom::CapLabel& other)
 {
   CapArray *otherCaps = other.GetDirectCaps();
   for (unsigned i=0; i< otherCaps->Length(); ++i) {
-    _And(otherCaps->ElementAt(i));
+    _And(*(otherCaps->ElementAt(i)));
   }
 }
 
 // Comparator helpers
 
 int
-nsICapPrincipalComparator::Compare(const nsCOMPtr<mozilla::dom::CapItem> &c1,
-                          const nsCOMPtr<mozilla::dom::CapItem> &c2) const
+nsICapPrincipalComparator::Compare(const nsRefPtr<mozilla::dom::CapItem> &c1,
+                                   const nsRefPtr<mozilla::dom::CapItem> &c2) const
 {
   bool res;
-  nsCOMPtr<nsIPrincipal> p1 = c1->GetPrincipal();
-  nsCOMPtr<nsIPrincipal> p2 = c2->GetPrincipal();
+  nsCOMPtr<nsIPrincipal> p1 = *(c1->GetPrincipal());
+  nsCOMPtr<nsIPrincipal> p2 = *(c2->GetPrincipal());
   char *origin1, *origin2;
   
   nsresult rv;
@@ -328,7 +367,13 @@ nsICapPrincipalComparator::Compare(const nsCOMPtr<mozilla::dom::CapItem> &c1,
   nsMemory::Free(origin1);
   nsMemory::Free(origin2);
 
+  if(c1->GetType() == c2->GetType()){
   return res;
+  }
+
+  return 1;
+
+
 }
 
 } // namespace dom
