@@ -21,13 +21,13 @@ interface LabelSet {
    */
   boolean equals(LabelSet other);
 
-  boolean isFlumeSafe(LabelSet other);
+  //boolean isFlumeSafe(LabelSet other);
   
-  static Label getSecLabel();
+  [Throws] Label getSecLabel();
   
-  static Label getIntLabel();
+  [Throws] Label getIntLabel();
   
-  static CapLabel getCapLabel();
+  [Throws] CapLabel getCapLabel();
   
   [Throws] void addSecPrincipal(DOMString? principal);
   
@@ -37,7 +37,7 @@ interface LabelSet {
   
   [Throws] void delSecPrincipal(Principal principal);
   
-  [Throws] void dddIntPrincipal(DOMString? principal);
+  [Throws] void addIntPrincipal(DOMString? principal);
   
   [Throws] void addIntPrincipal(Principal principal);
   
@@ -46,10 +46,10 @@ interface LabelSet {
   [Throws] void delIntPrincipal(Principal principal);
   
   /**
-   * Make a new copy of this Label.
+   * Make a new copy of this LabelSet.
    */
   [Throws]
-  Label clone();
+  LabelSet clone();
 
   stringifier;
 };

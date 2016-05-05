@@ -55,7 +55,7 @@ public:
                                             ErrorResult& aRv);
   static already_AddRefed<CapLabel> Constructor(const GlobalObject& global,
                                             const Sequence<nsString>& principals, 
-											Uint32Array& capType,
+											const Sequence<uint32_t>& capType,
                                             ErrorResult& aRv);
 											
 /*JS接口中使用nsIPrincipal来构造对象的方法暂且不用		

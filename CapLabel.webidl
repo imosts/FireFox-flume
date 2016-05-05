@@ -9,7 +9,7 @@ interface Principal;
 interface URI;
 
 [Constructor(DOMString principal, unsigned long capType),
- Constructor(sequence<DOMString> principals, Uint32Array? capType)]
+ Constructor(sequence<DOMString> principals, sequence<unsigned long> capType)]
 interface CapLabel {
 
   boolean equals(CapLabel other);

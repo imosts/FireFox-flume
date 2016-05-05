@@ -79,7 +79,7 @@ CapLabel::Constructor(const GlobalObject& global, const nsAString& principal, un
 
 already_AddRefed<CapLabel>
 CapLabel::Constructor(const GlobalObject& global, const Sequence<nsString >& principals, 
-Uint32Array& capType,
+const Sequence<uint32_t>& capType,
                   ErrorResult& aRv)
 {
   nsRefPtr<CapLabel> caplabel = new CapLabel();
@@ -87,9 +87,9 @@ Uint32Array& capType,
 	  aRv.Throw(NS_ERROR_FAILURE);
       return nullptr;
 }
-  unsigned* type = capType.Data();
+  //unsigned* type = capType.Data();
   for (unsigned i = 0; i < principals.Length(); ++i) {
-    caplabel->_And(principals[i], type[i], aRv);
+    caplabel->_And(principals[i], capType[i], aRv);
     if (aRv.Failed())
       return nullptr;
   }

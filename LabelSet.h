@@ -77,13 +77,12 @@ public:
   void DelIntPrincipal(const nsAString& principal, ErrorResult& aRv);
   void DelIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv);
   
-  static 
-  already_AddRefed<LabelSet> clone(ErrorResult& aRv);
+  already_AddRefed<LabelSet> Clone(ErrorResult& aRv);
    
   void Stringify(nsString& retval);
 
 public://c++ only!
-  void StrToPrin(const nsAString& principal, ErrorResult& aRv, nsIPrincipal* prinPtr);
+  void StrToPrin(const nsAString& principal, ErrorResult& aRv, nsCOMPtr<nsIPrincipal>& prinPtr);
 				  
 private:
   nsRefPtr<Label> sLabel;

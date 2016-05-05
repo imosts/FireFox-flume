@@ -126,6 +126,17 @@ LabelSet::GetSecLabel(ErrorResult& aRv){
   
   }
   
+  bool
+  LabelSet::IsFlumeSafe(mozilla::dom::LabelSet& labelSet){
+    ErrorResult aRv;
+    nsRefPtr<Label> s = labelSet.GetSecLabel(aRv);
+    nsRefPtr<Label> i = labelSet.GetIntLabel(aRv);
+    if( (s->Subsumes(*sLabel)) && (iLabel->Subsumes(*i))){
+      return true;
+    }
+    return false;
+  }
+
   already_AddRefed<Label> 
 LabelSet::GetIntLabel(ErrorResult& aRv){
 	  
@@ -241,9 +252,23 @@ void LabelSet::DelIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
   }
 }
 
+already_AddRefed<LabelSet> 
+LabelSet::Clone(ErrorResult& aRv){
+    nsRefPtr<Label> s = sLabel->Clone(aRv);
+    nsRefPtr<Label> i = iLabel->Clone(aRv);
+    nsRefPtr<CapLabel> c = cLabel->Clone(aRv);
+
+    nsRefPtr<LabelSet> labelSet = new LabelSet(*s, *i, *c, aRv);
+
+    sLabel.forget();
+    iLabel.forget();
+    cLabel.forget();
+
+  return labelSet.forget();
+};
 
 void
-StrToPrin(const nsAString& principal, ErrorResult& aRv, nsIPrincipal& prinPtr){
+LabelSet::StrToPrin(const nsAString& principal, ErrorResult& aRv, nsCOMPtr<nsIPrincipal>& prinPtr){
   nsCOMPtr<nsIScriptSecurityManager> secMan =
     nsContentUtils::GetSecurityManager();
 
@@ -273,8 +298,8 @@ StrToPrin(const nsAString& principal, ErrorResult& aRv, nsIPrincipal& prinPtr){
     aRv.Throw(rv);
     return;
   }
-  prinPtr = *nPrincipal;
-};
+  prinPtr = nPrincipal;
+}
 
 } // namespace dom
 } // namespace mozilla
