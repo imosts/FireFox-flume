@@ -116,10 +116,12 @@ FLUME::SetLabelSet(const GlobalObject& global, JSContext* cx,
   JSCompartment *compartment = js::GetObjectCompartment(global.Get());
   MOZ_ASSERT(compartment);
 
+  NS_ASSERTION(false, "!!!FLUME::SetLabelSet!!! : point 1");
   xpc::flume::SetCompartmentLabelSet(compartment, &aLabelSet);
+  NS_ASSERTION(false, "!!!FLUME::SetLabelSet!!! : point 2");
   // This affects cross-compartment communication. Adjust wrappers:
   js::RecomputeWrappers(cx, js::AllCompartments(), js::AllCompartments());
-  //xpc::flume::RefineCompartmentCSP(compartment);
+  xpc::flume::RefineCompartmentCSP(compartment);
 }
 
 void
@@ -138,6 +140,9 @@ FLUME::AddSecPrincipal(const GlobalObject& global,
   MOZ_ASSERT(compartment);
 
   xpc::flume::AddCompartmentSec(compartment, principal);
+  // This affects cross-compartment communication. Adjust wrappers:
+  js::RecomputeWrappers(cx, js::AllCompartments(), js::AllCompartments());
+  xpc::flume::RefineCompartmentCSP(compartment);
 
 }
 
@@ -157,6 +162,9 @@ FLUME::AddIntPrincipal(const GlobalObject& global,
   MOZ_ASSERT(compartment);
 
   xpc::flume::AddCompartmentInt(compartment, principal);
+  // This affects cross-compartment communication. Adjust wrappers:
+  js::RecomputeWrappers(cx, js::AllCompartments(), js::AllCompartments());
+  xpc::flume::RefineCompartmentCSP(compartment);
 }
 
 void
@@ -175,6 +183,9 @@ FLUME::DelSecPrincipal(const GlobalObject& global,
   MOZ_ASSERT(compartment);
 
   xpc::flume::DelCompartmentSec(compartment, principal);
+  // This affects cross-compartment communication. Adjust wrappers:
+  js::RecomputeWrappers(cx, js::AllCompartments(), js::AllCompartments());
+  xpc::flume::RefineCompartmentCSP(compartment);
 }
 
 void
@@ -193,6 +204,9 @@ FLUME::DelIntPrincipal(const GlobalObject& global,
   MOZ_ASSERT(compartment);
 
   xpc::flume::DelCompartmentInt(compartment, principal);
+  // This affects cross-compartment communication. Adjust wrappers:
+  js::RecomputeWrappers(cx, js::AllCompartments(), js::AllCompartments());
+  xpc::flume::RefineCompartmentCSP(compartment);
 }
 
 // Helper for setting the ErrorResult to a string.  This function

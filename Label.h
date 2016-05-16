@@ -43,27 +43,30 @@ public:
   virtual JSObject* WrapObject(JSContext* aCx) MOZ_OVERRIDE;
 
   static already_AddRefed<Label> Constructor(const GlobalObject& global,
-                                            const nsAString& principal, 
+                                            ErrorResult& aRv);
+
+  static already_AddRefed<Label> Constructor(const GlobalObject& global,
+                                            const nsAString& principal,
                                             ErrorResult& aRv);
   static already_AddRefed<Label> Constructor(const GlobalObject& global,
-                                            const Sequence<nsString >& principals, 
+                                            const Sequence<nsString >& principals,
                                             ErrorResult& aRv);
 
   bool Equals(mozilla::dom::Label& other);
-  
-  bool Subsumes(mozilla::dom::Label& other) { 
-      return Subsumes(*static_cast<const mozilla::dom::Label*>(&other)); 
+
+  bool Subsumes(mozilla::dom::Label& other) {
+      return Subsumes(*static_cast<const mozilla::dom::Label*>(&other));
   }
   bool Subsumes(const mozilla::dom::Label& other);
 
 
 
-  
+
   //const???
   already_AddRefed<Label> Clone(ErrorResult &aRv) const;
 
   void Stringify(nsString& retval);
-  
+
 
 
 public: // C++ only:
@@ -72,14 +75,14 @@ public: // C++ only:
   already_AddRefed<Label> And(nsIPrincipal* principal, ErrorResult& aRv);
   already_AddRefed<Label> And(mozilla::dom::Label& other, ErrorResult& aRv);
   */
-  
+
   void _And(const nsAString& principal, ErrorResult& aRv);
   void _And(nsIPrincipal* principal);
   void _And(mozilla::dom::Label& other);
 
-  
+
   void Reduce(nsIPrincipal &principal);
-	
+
   bool IsEmpty() const
   {
     return !mPrincipals.Length();

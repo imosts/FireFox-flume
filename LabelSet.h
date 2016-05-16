@@ -52,38 +52,38 @@ public:
 											mozilla::dom::CapLabel& c,
                                             ErrorResult& aRv);
   static already_AddRefed<LabelSet> Constructor(const GlobalObject& global,
-                                            mozilla::dom::LabelSet& labelSet, 
+                                            mozilla::dom::LabelSet& labelSet,
                                             ErrorResult& aRv);
-										
+
 
   bool Equals(mozilla::dom::LabelSet& other);
-  
+
   bool IsFlumeSafe(mozilla::dom::LabelSet& labelSet);
-  
-  
+
+
   already_AddRefed<Label> GetSecLabel(ErrorResult& aRv);
   already_AddRefed<Label> GetIntLabel(ErrorResult& aRv);
   already_AddRefed<CapLabel> GetCapLabel(ErrorResult& aRv);
-  
+
   void AddSecPrincipal(const nsAString& principal, ErrorResult& aRv);
   void AddSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv);
-  
+
   void DelSecPrincipal(const nsAString& principal, ErrorResult& aRv);
   void DelSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv);
-  
+
   void AddIntPrincipal(const nsAString& principal, ErrorResult& aRv);
   void AddIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv);
-  
+
   void DelIntPrincipal(const nsAString& principal, ErrorResult& aRv);
   void DelIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv);
-  
-  already_AddRefed<LabelSet> Clone(ErrorResult& aRv);
+
+  already_AddRefed<LabelSet> Clone(ErrorResult& aRv) const;
    
   void Stringify(nsString& retval);
 
 public://c++ only!
   void StrToPrin(const nsAString& principal, ErrorResult& aRv, nsCOMPtr<nsIPrincipal>& prinPtr);
-				  
+
 private:
   nsRefPtr<Label> sLabel;
   nsRefPtr<Label> iLabel;

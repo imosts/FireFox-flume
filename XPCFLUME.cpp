@@ -9,8 +9,8 @@
 #include "xpcpublic.h"
 #include "jsfriendapi.h"
 #include "mozilla/dom/FLUME.h"
+#include "mozilla/dom/Label.h"
 #include "mozilla/dom/LabelSet.h"
-//#include "mozilla/dom/Role.h"
 #include "nsIContentSecurityPolicy.h"
 #include "nsDocument.h"
 
@@ -30,12 +30,14 @@ EnableCompartmentConfinement(JSCompartment *compartment)
 {
   MOZ_ASSERT(compartment);
 
+  NS_ASSERTION(false, "!!!EnableCompartmentConfinement!!! : point 1");
   if (IsCompartmentConfined(compartment))
     return;
-
+  NS_ASSERTION(false, "!!!EnableCompartmentConfinement!!! : point 2");
   nsRefPtr<LabelSet> labelSet = new LabelSet();
+  NS_ASSERTION(false, "!!!EnableCompartmentConfinement!!! : point 3");
   MOZ_ASSERT(labelSet);
-
+  NS_ASSERTION(false, "!!!EnableCompartmentConfinement!!! : point 4");
   FLUME_CONFIG(compartment).SetLabelSet(labelSet);
 }
 
@@ -53,16 +55,19 @@ IsCompartmentConfined(JSCompartment *compartment)
     MOZ_ASSERT(compartment);
     MOZ_ASSERT(aLabelSet);
 
+
+    NS_ASSERTION(false, "!!!SetCompartmentLabelSet!!! : point 1");
     NS_ASSERTION(IsCompartmentConfined(compartment),
                  "Must call EnableCompartmentConfinement() first");
     if (!IsCompartmentConfined(compartment))
       return;
-
+    NS_ASSERTION(false, "!!!SetCompartmentLabelSet!!! : point 2");
     ErrorResult aRv;
     nsRefPtr<LabelSet> labelSet = (aLabelSet)->Clone(aRv);
-
+    NS_ASSERTION(false, "!!!SetCompartmentLabelSet!!! : point 3");
     MOZ_ASSERT(!(aRv).Failed());
     FLUME_CONFIG(compartment).SetLabelSet(labelSet);
+    NS_ASSERTION(false, "!!!SetCompartmentLabelSet!!! : point 4");
   }
 
 
@@ -207,7 +212,7 @@ GuardRead(JSCompartment *compartment, JSCompartment *source)
 }
 
 
-/*
+
 static inline uint32_t flumeSandboxFlags() {
   // Sandbox flags
   nsAttrValue sandboxAttr;
@@ -226,9 +231,10 @@ NS_EXPORT_(void)
 RefineCompartmentCSP(JSCompartment *compartment)
 {
   nsresult rv;
-
-  // Get the compartment privacy label:
-  nsRefPtr<Label> privacy = GetCompartmentPrivacyLabel(compartment);
+  ErrorResult aRv;
+  // Get the compartment security label:
+  nsRefPtr<LabelSet> labelSet = GetCompartmentLabelSet(compartment);
+  nsRefPtr<Label> security = labelSet->GetSecLabel(aRv);
 
   // Get the compartment principal
   nsCOMPtr<nsIPrincipal> compPrincipal = GetCompartmentPrincipal(compartment);
@@ -243,11 +249,11 @@ RefineCompartmentCSP(JSCompartment *compartment)
     uint32_t numPolicies = 0;
     rv = csp->GetPolicyCount(&numPolicies);
     MOZ_ASSERT(NS_SUCCEEDED(rv));
-    uint32_t cowlCSPPolicy = COWL_CONFIG(compartment).mCSPIndex ;
-    if (cowlCSPPolicy > 0 && cowlCSPPolicy <= numPolicies) {
-      rv = csp->RemovePolicy(cowlCSPPolicy-1);
+    uint32_t flumeCSPPolicy = FLUME_CONFIG(compartment).mCSPIndex ;
+    if (flumeCSPPolicy > 0 && flumeCSPPolicy <= numPolicies) {
+      rv = csp->RemovePolicy(flumeCSPPolicy-1);
       MOZ_ASSERT(NS_SUCCEEDED(rv));
-      COWL_CONFIG(compartment).mCSPIndex = 0;
+      FLUME_CONFIG(compartment).mCSPIndex = 0;
     }
   }
 
@@ -278,27 +284,22 @@ RefineCompartmentCSP(JSCompartment *compartment)
 
     // Reset sandbox flags, if set
     if (doc->GetSandboxFlags() == flumeSandboxFlags() &&
-        COWL_CONFIG(compartment).SetSandboxFlags()) {
-      doc->SetSandboxFlags(COWL_CONFIG(compartment).GetSandboxFlags());
-      COWL_CONFIG(compartment).ClearSandboxFlags();
+        FLUME_CONFIG(compartment).SetSandboxFlags()) {
+      doc->SetSandboxFlags(FLUME_CONFIG(compartment).GetSandboxFlags());
+      FLUME_CONFIG(compartment).ClearSandboxFlags();
     }
   }
 
   // Case 1: Empty/public label, don't loosen/impose new restrictions
-  if (privacy->IsEmpty()) {
-#if COWL_DEBUG
-    printf("Refine: Privacy label is empty, do nothing\n");
-#endif
+  if (security->IsEmpty()) {
+//#if FLUME_DEBUG
+    printf("Refine: Security label is empty, do nothing\n");
+//#endif
     return;
   }
 
   nsString policy;
-  PrincipalArray* labelPrincipals = privacy->GetPrincipalsIfSingleton();
-
-  if (labelPrincipals && labelPrincipals->Length() > 0) {
-    // Case 2: singleton disjunctive role
-    // Allow network access to all the origins in the list,
-    // but disable storage access.
+  PrincipalArray* labelPrincipals = security->GetDirectPrincipals();
 
     // Create list of origins
     nsString origins;
@@ -321,34 +322,16 @@ RefineCompartmentCSP(JSCompartment *compartment)
            + NS_LITERAL_STRING(";font-src ")                    + origins
            + NS_LITERAL_STRING(";connect-src ")                 + origins
            + NS_LITERAL_STRING(";");
-#if COWL_DEBUG
-    printf("Refine: Privacy label is disjunctive\n");
-#endif
+//#if FLUME_DEBUG
+    printf("Refine: Security label is disjunctive\n");
+//#endif
 
-  } else {
-    // Case 3: not the empty label or singleton disjunctive role
-    // Disable all network and storage access.
-
-    // Policy to disable all communication
-    policy = NS_LITERAL_STRING("default-src 'none' 'unsafe-inline';")
-           + NS_LITERAL_STRING("script-src  'none' 'unsafe-inline' 'unsafe-eval';")
-           + NS_LITERAL_STRING("object-src  'none';")
-           + NS_LITERAL_STRING("style-src   'none' 'unsafe-inline';")
-           + NS_LITERAL_STRING("img-src     'none';")
-           + NS_LITERAL_STRING("media-src   'none';")
-           + NS_LITERAL_STRING("frame-src   'none';")
-           + NS_LITERAL_STRING("font-src    'none';")
-           + NS_LITERAL_STRING("connect-src 'none';");
-#if COWL_DEBUG
-    printf("Refine: Privacy label is conjunctive\n");
-#endif
-  }
 
   // A. Set sandbox flags to disallow storage access
 
   if (doc) {
     // Save current flags:
-    COWL_CONFIG(compartment).SetSandboxFlags(doc->GetSandboxFlags());
+    FLUME_CONFIG(compartment).SetSandboxFlags(doc->GetSandboxFlags());
     doc->SetSandboxFlags(flumeSandboxFlags());
   }
 
@@ -375,16 +358,16 @@ RefineCompartmentCSP(JSCompartment *compartment)
   rv = csp->AppendPolicy(policy, false);
   MOZ_ASSERT(NS_SUCCEEDED(rv));
 
-  // Track which policy is COWLs
-  rv = csp->GetPolicyCount(&COWL_CONFIG(compartment).mCSPIndex);
+  // Track which policy is FLUMEs
+  rv = csp->GetPolicyCount(&FLUME_CONFIG(compartment).mCSPIndex);
   MOZ_ASSERT(NS_SUCCEEDED(rv));
 
- #ifdef COWL_DEBUG
-  printf("Refine: appended policy [%d] to principal %p [csp=%p]: %s\n", COWL_CONFIG(compartment).mCSPIndex, compPrincipal.get(), csp.get(), NS_ConvertUTF16toUTF8(policy).get());
- #endif
+ //#ifdef FLUME_DEBUG
+  printf("Refine: appended policy [%d] to principal %p [csp=%p]: %s\n", FLUME_CONFIG(compartment).mCSPIndex, compPrincipal.get(), csp.get(), NS_ConvertUTF16toUTF8(policy).get());
+ //#endif
 
 
-#ifdef COWL_DEBUG
+//#ifdef FLUME_DEBUG
   {
     unsigned numPolicies = 0;
     if (csp) {
@@ -399,14 +382,13 @@ RefineCompartmentCSP(JSCompartment *compartment)
       }
     }
   }
-#endif
+//#endif
 
 }
 
 
 
-#undef COWL_CONFIG
-*/
+#undef FLUME_CONFIG
 
-}; // cowl
+}; // flume
 }; // xpc

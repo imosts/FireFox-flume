@@ -8,7 +8,8 @@
 interface Principal;
 interface URI;
 
-[Constructor(DOMString principal),
+[Constructor,
+ Constructor(DOMString principal),
  Constructor(sequence<DOMString> principals)]
 interface Label {
 
@@ -20,7 +21,7 @@ interface Label {
 
   /**
    * Returns whether the other Label is equal to or weaker than this
-   * Label. 
+   * Label.
    *
    * This Label subsumes the other Label if the set of principals it
    * contains is a (non-empty) subset of other's principals. That is,

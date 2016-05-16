@@ -3643,7 +3643,12 @@ public:
 
     inline void SetLabelSet(mozilla::dom::LabelSet *aLabelSet) {
         NS_ASSERTION(aLabelSet, "SetLabelSet called with null labelSet!");
-          mLabelSet = aLabelSet;
+        NS_ASSERTION(false, "!!!SETLABELSET!!! : point 1");
+        mozilla::ErrorResult aRv;
+        NS_ASSERTION(false, "!!!SETLABELSET!!! : point 2");
+        NS_ASSERTION(aLabelSet == nullptr, "!!!SETLABELSET!!! : nullpter!");
+        mLabelSet = aLabelSet;
+        NS_ASSERTION(false, "!!!SETLABELSET!!! : point 3");
     }
 
     inline already_AddRefed<mozilla::dom::LabelSet> GetLabelSet() {

@@ -79,7 +79,7 @@ LabelSet::Constructor(const GlobalObject& global, mozilla::dom::Label& s, mozill
 }
 
 already_AddRefed<LabelSet>
-LabelSet::Constructor(const GlobalObject& global, mozilla::dom::LabelSet& labelSet, 
+LabelSet::Constructor(const GlobalObject& global, mozilla::dom::LabelSet& labelSet,
                   ErrorResult& aRv)
 {
   nsRefPtr<LabelSet> labelset = new LabelSet(labelSet);
@@ -95,7 +95,7 @@ LabelSet::Equals(mozilla::dom::LabelSet& other)
   // Break out early if the other and this are the same.
   if (&other == this)
     return true;
-  
+
   ErrorResult aRv;
   nsRefPtr<Label> s = other.GetSecLabel(aRv);
   nsRefPtr<Label> i = other.GetIntLabel(aRv);
@@ -111,21 +111,21 @@ LabelSet::Equals(mozilla::dom::LabelSet& other)
        && cLabel->Equals(*c)){
 	  return true;
   }
-  
+
   return false;
 }
 
-  already_AddRefed<Label> 
+  already_AddRefed<Label>
 LabelSet::GetSecLabel(ErrorResult& aRv){
-	  
+
   nsRefPtr<Label> temLabel = sLabel->Clone(aRv);
   if (aRv.Failed()){
     return nullptr;
   }
   return temLabel.forget();
-  
+
   }
-  
+
   bool
   LabelSet::IsFlumeSafe(mozilla::dom::LabelSet& labelSet){
     ErrorResult aRv;
@@ -137,29 +137,29 @@ LabelSet::GetSecLabel(ErrorResult& aRv){
     return false;
   }
 
-  already_AddRefed<Label> 
+  already_AddRefed<Label>
 LabelSet::GetIntLabel(ErrorResult& aRv){
-	  
+
   nsRefPtr<Label> _this = iLabel->Clone(aRv);
   if (aRv.Failed()){
     return nullptr;
   }
   return _this.forget();
-  
+
   }
-  
-  already_AddRefed<CapLabel> 
+
+  already_AddRefed<CapLabel>
 LabelSet::GetCapLabel(ErrorResult& aRv){
-	  
+
   nsRefPtr<CapLabel> _this = cLabel->Clone(aRv);
   if (aRv.Failed()){
     return nullptr;
   }
   return _this.forget();
-  
+
   }
-  
-void 
+
+void
 LabelSet::Stringify(nsString& retval)
 {
   retval = NS_LITERAL_STRING("S-");
@@ -172,7 +172,7 @@ LabelSet::Stringify(nsString& retval)
 
 
 void LabelSet::AddSecPrincipal(const nsAString& principal, ErrorResult& aRv){
-	
+
   nsCOMPtr<nsIPrincipal> nPrincipal;
   StrToPrin(principal, aRv, nPrincipal);
   AddSecPrincipal(nPrincipal, aRv);
@@ -180,11 +180,11 @@ void LabelSet::AddSecPrincipal(const nsAString& principal, ErrorResult& aRv){
 }
 
 void LabelSet::AddSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
-	
+
   nsRefPtr<CapItem> item = new CapItem(principal, (unsigned)1, aRv);
   nsRefPtr<CapItem> Ditem = new CapItem(principal, (unsigned)3, aRv);
 
-  
+
   if (cLabel->Contains(*item) || cLabel->Contains(*Ditem)) {
 	sLabel->_And(principal);
   }else{
@@ -193,7 +193,7 @@ void LabelSet::AddSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
 }
 
 void LabelSet::DelSecPrincipal(const nsAString& principal, ErrorResult& aRv){
-	
+
   nsCOMPtr<nsIPrincipal> nPrincipal;
   StrToPrin(principal, aRv, nPrincipal);
   DelSecPrincipal(nPrincipal, aRv);
@@ -201,10 +201,10 @@ void LabelSet::DelSecPrincipal(const nsAString& principal, ErrorResult& aRv){
 }
 
 void LabelSet::DelSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
-	
+
   nsRefPtr<CapItem> item = new CapItem(principal, (unsigned)2, aRv);
   nsRefPtr<CapItem> Ditem = new CapItem(principal, (unsigned)3, aRv);
-  
+
   if (cLabel->Contains(*item) || cLabel->Contains(*Ditem)) {
 	sLabel->Reduce(*principal);
   }else{
@@ -213,7 +213,7 @@ void LabelSet::DelSecPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
 }
 
 void LabelSet::AddIntPrincipal(const nsAString& principal, ErrorResult& aRv){
-	
+
   nsCOMPtr<nsIPrincipal> nPrincipal;
   StrToPrin(principal, aRv, nPrincipal);
   AddIntPrincipal(nPrincipal, aRv);
@@ -221,10 +221,10 @@ void LabelSet::AddIntPrincipal(const nsAString& principal, ErrorResult& aRv){
 }
 
 void LabelSet::AddIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
-	
+
   nsRefPtr<CapItem> item = new CapItem(principal, (unsigned)1, aRv);
   nsRefPtr<CapItem> Ditem = new CapItem(principal, (unsigned)3, aRv);
-  
+
   if (cLabel->Contains(*item) || cLabel->Contains(*Ditem)) {
 	iLabel->_And(principal);
   }else{
@@ -233,7 +233,7 @@ void LabelSet::AddIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
 }
 
 void LabelSet::DelIntPrincipal(const nsAString& principal, ErrorResult& aRv){
-	
+
   nsCOMPtr<nsIPrincipal> nPrincipal;
   StrToPrin(principal, aRv, nPrincipal);
   DelIntPrincipal(nPrincipal, aRv);
@@ -241,10 +241,10 @@ void LabelSet::DelIntPrincipal(const nsAString& principal, ErrorResult& aRv){
 }
 
 void LabelSet::DelIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
-	
+
   nsRefPtr<CapItem> item = new CapItem(principal, (unsigned)2, aRv);
   nsRefPtr<CapItem> Ditem = new CapItem(principal, (unsigned)3, aRv);
-  
+
   if (cLabel->Contains(*item) || cLabel->Contains(*Ditem)) {
 	iLabel->Reduce(*principal);
   }else{
@@ -252,17 +252,13 @@ void LabelSet::DelIntPrincipal(nsIPrincipal* principal, ErrorResult& aRv){
   }
 }
 
-already_AddRefed<LabelSet> 
-LabelSet::Clone(ErrorResult& aRv){
+already_AddRefed<LabelSet>
+LabelSet::Clone(ErrorResult& aRv) const{
     nsRefPtr<Label> s = sLabel->Clone(aRv);
     nsRefPtr<Label> i = iLabel->Clone(aRv);
     nsRefPtr<CapLabel> c = cLabel->Clone(aRv);
 
     nsRefPtr<LabelSet> labelSet = new LabelSet(*s, *i, *c, aRv);
-
-    sLabel.forget();
-    iLabel.forget();
-    cLabel.forget();
 
   return labelSet.forget();
 };
@@ -283,7 +279,7 @@ LabelSet::StrToPrin(const nsAString& principal, ErrorResult& aRv, nsCOMPtr<nsIPr
   nsCOMPtr<nsIURI> uri;
   rv = NS_NewURI(getter_AddRefs(uri), principal);
   if (NS_FAILED(rv)) {
-    rv = NS_NewURI(getter_AddRefs(uri), 
+    rv = NS_NewURI(getter_AddRefs(uri),
                    NS_LITERAL_STRING("moz-role:") + principal);
     if (NS_FAILED(rv)) {
       aRv.Throw(rv);

@@ -588,7 +588,7 @@ IsCompartmentConfined(JSCompartment *compartment);
 
 NS_EXPORT_(void)
 SetCompartmentLabelSet(JSCompartment *compartment,
-                    mozilla::dom::LabelSet *aLabelSet);
+                    mozilla::dom::LabelSet* aLabelSet);
 
 NS_EXPORT_(already_AddRefed<mozilla::dom::LabelSet>)
 GetCompartmentLabelSet(JSCompartment *compartment);
@@ -618,11 +618,10 @@ GuardWrite(JSCompartment *compartment, JSCompartment *dst);
 NS_EXPORT_(bool)
 GuardRead(JSCompartment *compartment, JSCompartment *source);
 
-/*
+
 // Update CSP and sandbox flags according to the label of the compartment
 NS_EXPORT_(void)
 RefineCompartmentCSP(JSCompartment *compartment);
-*/
 
 } // namespace cowl
 } // namespace xpc

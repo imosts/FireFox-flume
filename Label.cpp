@@ -60,7 +60,17 @@ Label::GetParentObject() const
 }
 
 already_AddRefed<Label>
-Label::Constructor(const GlobalObject& global, const nsAString& principal, 
+Label::Constructor(const GlobalObject& global, ErrorResult& aRv){
+  nsRefPtr<Label> label = new Label();
+  if (!label) {
+     aRv = NS_ERROR_OUT_OF_MEMORY;
+     return nullptr;
+  }
+  return label.forget();
+}
+
+already_AddRefed<Label>
+Label::Constructor(const GlobalObject& global, const nsAString& principal,
                   ErrorResult& aRv)
 {
   nsRefPtr<Label> label = new Label(principal, aRv);
@@ -70,7 +80,7 @@ Label::Constructor(const GlobalObject& global, const nsAString& principal,
 }
 
 already_AddRefed<Label>
-Label::Constructor(const GlobalObject& global, const Sequence<nsString >& principals, 
+Label::Constructor(const GlobalObject& global, const Sequence<nsString >& principals,
                   ErrorResult& aRv)
 {
   nsRefPtr<Label> label = new Label();
@@ -97,7 +107,7 @@ Label::Equals(mozilla::dom::Label& other)
 
   nsIPrincipalComparator cmp;
   for (unsigned i=0; i< mPrincipals.Length(); ++i) {
-    /* This role contains a principal that the other role does not, 
+    /* This role contains a principal that the other role does not,
      * hence it cannot be equal to it. */
     if(!cmp.Equals(mPrincipals[i], (*otherPrincipals)[i]))
       return false;
@@ -121,7 +131,7 @@ Label::Subsumes(const mozilla::dom::Label& other)
 
   nsIPrincipalComparator cmp;
   for (unsigned i=0; i< mPrincipals.Length(); ++i) {
-    /* This label contains a principal that the other label does not, 
+    /* This label contains a principal that the other label does not,
      * hence it cannot imply (subsume) it. */
     if (!otherPrincipals->Contains(mPrincipals[i],cmp))
       return false;
@@ -160,13 +170,13 @@ Label::And(Label& other, ErrorResult& aRv)
 */
 
 
-void 
+void
 Label::Stringify(nsString& retval)
 {
   if (retval == NULL) {
 	retval = NS_LITERAL_STRING("Label(");
   }else{
-	retval.Append(NS_LITERAL_STRING("Label(")); 
+	retval.Append(NS_LITERAL_STRING("Label("));
   }
 
   for (unsigned i=0; i < mPrincipals.Length(); ++i) {
@@ -232,7 +242,7 @@ Label::_And(const nsAString& principal, ErrorResult& aRv)
   nsCOMPtr<nsIURI> uri;
   rv = NS_NewURI(getter_AddRefs(uri), principal);
   if (NS_FAILED(rv)) {
-    rv = NS_NewURI(getter_AddRefs(uri), 
+    rv = NS_NewURI(getter_AddRefs(uri),
                    NS_LITERAL_STRING("moz-role:") + principal);
     if (NS_FAILED(rv)) {
       aRv.Throw(rv);
